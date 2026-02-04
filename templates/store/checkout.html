@@ -1,0 +1,378 @@
+{% extends 'store/base.html' %}
+
+{% block title %}Checkout - ShopHub{% endblock %}
+
+{% block extra_css %}
+<style>
+    .checkout-container {
+        display: grid;
+        grid-template-columns: 1fr 350px;
+        gap: 2rem;
+        max-width: 1200px;
+    }
+
+    .checkout-form {
+        background: white;
+        border-radius: 8px;
+        padding: 2rem;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    }
+
+    .form-section {
+        margin-bottom: 2rem;
+        padding-bottom: 2rem;
+        border-bottom: 1px solid var(--border-color);
+    }
+
+    .form-section:last-of-type {
+        border-bottom: none;
+    }
+
+    .form-section h2 {
+        color: var(--primary-color);
+        font-size: 1.3rem;
+        margin-bottom: 1.5rem;
+    }
+
+    .form-row {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 1rem;
+    }
+
+    .form-row.full {
+        grid-template-columns: 1fr;
+    }
+
+    .form-group {
+        margin-bottom: 1rem;
+    }
+
+    label {
+        display: block;
+        margin-bottom: 0.5rem;
+        font-weight: 600;
+        color: var(--primary-color);
+    }
+
+    input[type="text"],
+    input[type="email"],
+    input[type="tel"],
+    select {
+        width: 100%;
+        padding: 0.75rem;
+        border: 1px solid var(--border-color);
+        border-radius: 4px;
+        font-family: inherit;
+        font-size: 1rem;
+    }
+
+    input[type="text"]:focus,
+    input[type="email"]:focus,
+    input[type="tel"]:focus,
+    select:focus {
+        outline: none;
+        border-color: var(--accent-color);
+        box-shadow: 0 0 5px rgba(52, 152, 219, 0.3);
+    }
+
+    .checkbox-group {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        margin-bottom: 1rem;
+    }
+
+    .checkbox-group input {
+        width: auto;
+    }
+
+    .checkout-summary {
+        background: white;
+        border-radius: 8px;
+        padding: 2rem;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        height: fit-content;
+        position: sticky;
+        top: 100px;
+    }
+
+    .summary-header {
+        font-size: 1.3rem;
+        font-weight: bold;
+        color: var(--primary-color);
+        margin-bottom: 1.5rem;
+        padding-bottom: 1rem;
+        border-bottom: 1px solid var(--border-color);
+    }
+
+    .order-item {
+        display: flex;
+        justify-content: space-between;
+        margin-bottom: 1rem;
+        padding-bottom: 1rem;
+        border-bottom: 1px solid #f0f0f0;
+    }
+
+    .order-item:last-child {
+        border-bottom: none;
+        margin-bottom: 0.5rem;
+    }
+
+    .item-name {
+        color: #333;
+    }
+
+    .item-price {
+        color: var(--secondary-color);
+        font-weight: bold;
+    }
+
+    .summary-row {
+        display: flex;
+        justify-content: space-between;
+        margin-bottom: 0.75rem;
+        color: #666;
+    }
+
+    .summary-row.total {
+        font-size: 1.2rem;
+        font-weight: bold;
+        color: var(--primary-color);
+        padding-top: 1rem;
+        border-top: 1px solid var(--border-color);
+        margin-top: 1rem;
+    }
+
+    .summary-row.total span:last-child {
+        color: var(--secondary-color);
+    }
+
+    .place-order-btn {
+        width: 100%;
+        padding: 1rem;
+        background-color: var(--secondary-color);
+        color: white;
+        border: none;
+        border-radius: 4px;
+        font-size: 1.1rem;
+        font-weight: bold;
+        cursor: pointer;
+        transition: all 0.3s;
+        margin-top: 1.5rem;
+    }
+
+    .place-order-btn:hover {
+        background-color: #c0392b;
+        transform: translateY(-2px);
+    }
+
+    .place-order-btn:disabled {
+        background-color: #bdc3c7;
+        cursor: not-allowed;
+        transform: none;
+    }
+
+    @media (max-width: 768px) {
+        .checkout-container {
+            grid-template-columns: 1fr;
+        }
+
+        .form-row {
+            grid-template-columns: 1fr;
+        }
+
+        .checkout-summary {
+            position: static;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<h1 class="page-title">Checkout</h1>
+
+<div class="checkout-container">
+    <form method="post" class="checkout-form">
+        {% csrf_token %}
+
+        <!-- Shipping Information -->
+        <div class="form-section">
+            <h2>Shipping Address</h2>
+            <div class="form-row full">
+                <div class="form-group">
+                    <label for="first_name">First Name</label>
+                    <input type="text" id="first_name" name="first_name" value="{{ user.first_name }}" required>
+                </div>
+            </div>
+            <div class="form-row full">
+                <div class="form-group">
+                    <label for="last_name">Last Name</label>
+                    <input type="text" id="last_name" name="last_name" value="{{ user.last_name }}" required>
+                </div>
+            </div>
+            <div class="form-row full">
+                <div class="form-group">
+                    <label for="email">Email Address</label>
+                    <input type="email" id="email" name="email" value="{{ user.email }}" required>
+                </div>
+            </div>
+            <div class="form-row full">
+                <div class="form-group">
+                    <label for="address">Street Address</label>
+                    <input type="text" id="address" name="address" placeholder="123 Main Street" required>
+                </div>
+            </div>
+            <div class="form-row">
+                <div class="form-group">
+                    <label for="city">City</label>
+                    <input type="text" id="city" name="city" required>
+                </div>
+                <div class="form-group">
+                    <label for="state">State/Province</label>
+                    <input type="text" id="state" name="state" required>
+                </div>
+            </div>
+            <div class="form-row">
+                <div class="form-group">
+                    <label for="zip">ZIP/Postal Code</label>
+                    <input type="text" id="zip" name="zip" required>
+                </div>
+                <div class="form-group">
+                    <label for="country">Country</label>
+                    <input type="text" id="country" name="country" value="United States" required>
+                </div>
+            </div>
+            <div class="form-row full">
+                <div class="form-group">
+                    <label for="phone">Phone Number</label>
+                    <input type="tel" id="phone" name="phone" placeholder="(555) 123-4567" required>
+                </div>
+            </div>
+        </div>
+
+        <!-- Shipping Method -->
+        <div class="form-section">
+            <h2>Shipping Method</h2>
+            <div class="form-row full">
+                <div class="checkbox-group">
+                    <input type="radio" id="shipping_standard" name="shipping" value="standard" checked>
+                    <label for="shipping_standard">Standard Shipping (5-7 business days) - FREE</label>
+                </div>
+            </div>
+            <div class="form-row full">
+                <div class="checkbox-group">
+                    <input type="radio" id="shipping_express" name="shipping" value="express">
+                    <label for="shipping_express">Express Shipping (2-3 business days) - $15.00</label>
+                </div>
+            </div>
+            <div class="form-row full">
+                <div class="checkbox-group">
+                    <input type="radio" id="shipping_overnight" name="shipping" value="overnight">
+                    <label for="shipping_overnight">Overnight Shipping - $30.00</label>
+                </div>
+            </div>
+        </div>
+
+        <!-- Payment Information -->
+        <div class="form-section">
+            <h2>Payment Information</h2>
+            <div class="form-row full">
+                <div class="form-group">
+                    <label for="card_name">Name on Card</label>
+                    <input type="text" id="card_name" name="card_name" required>
+                </div>
+            </div>
+            <div class="form-row full">
+                <div class="form-group">
+                    <label for="card_number">Card Number</label>
+                    <input type="text" id="card_number" name="card_number" placeholder="1234 5678 9012 3456" maxlength="19" required>
+                </div>
+            </div>
+            <div class="form-row">
+                <div class="form-group">
+                    <label for="expiry">Expiration Date</label>
+                    <input type="text" id="expiry" name="expiry" placeholder="MM/YY" maxlength="5" required>
+                </div>
+                <div class="form-group">
+                    <label for="cvv">CVV</label>
+                    <input type="text" id="cvv" name="cvv" placeholder="123" maxlength="4" required>
+                </div>
+            </div>
+        </div>
+
+        <!-- Terms and Conditions -->
+        <div class="form-section">
+            <div class="checkbox-group">
+                <input type="checkbox" id="terms" name="terms" required>
+                <label for="terms">I agree to the Terms and Conditions</label>
+            </div>
+            <div class="checkbox-group">
+                <input type="checkbox" id="newsletter" name="newsletter">
+                <label for="newsletter">Subscribe to our newsletter for exclusive offers</label>
+            </div>
+        </div>
+
+        <button type="submit" class="place-order-btn">Place Order</button>
+    </form>
+
+    <!-- Order Summary -->
+    <div class="checkout-summary">
+        <div class="summary-header">Order Summary</div>
+
+        {% for item in cart.items.all %}
+        <div class="order-item">
+            <div>
+                <div class="item-name">{{ item.product.name }}</div>
+                <div style="font-size: 0.9rem; color: #999;">Qty: {{ item.quantity }}</div>
+            </div>
+            <div class="item-price">${{ item.get_total_price }}</div>
+        </div>
+        {% endfor %}
+
+        <div class="summary-row">
+            <span>Subtotal:</span>
+            <span>${{ cart.get_total_price }}</span>
+        </div>
+        <div class="summary-row">
+            <span>Shipping:</span>
+            <span>$0.00</span>
+        </div>
+        <div class="summary-row">
+            <span>Tax:</span>
+            <span>$0.00</span>
+        </div>
+        <div class="summary-row total">
+            <span>Total:</span>
+            <span>${{ cart.get_total_price }}</span>
+        </div>
+
+        <p style="font-size: 0.85rem; color: #999; text-align: center; margin-top: 1rem;">
+            Your payment information is secure and encrypted.
+        </p>
+    </div>
+</div>
+
+<script>
+    // Card number formatting
+    document.getElementById('card_number').addEventListener('input', function(e) {
+        let value = e.target.value.replace(/\s/g, '');
+        let formatted = value.replace(/(\d{4})/g, '$1 ').trim();
+        e.target.value = formatted;
+    });
+
+    // Expiry date formatting
+    document.getElementById('expiry').addEventListener('input', function(e) {
+        let value = e.target.value.replace(/\D/g, '');
+        if (value.length >= 2) {
+            value = value.slice(0, 2) + '/' + value.slice(2, 4);
+        }
+        e.target.value = value;
+    });
+
+    // CVV only numbers
+    document.getElementById('cvv').addEventListener('input', function(e) {
+        e.target.value = e.target.value.replace(/\D/g, '');
+    });
+</script>
+{% endblock %}

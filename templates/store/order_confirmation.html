@@ -1,0 +1,274 @@
+{% extends 'store/base.html' %}
+
+{% block title %}Order Confirmation - ShopHub{% endblock %}
+
+{% block extra_css %}
+<style>
+    .confirmation-container {
+        background: white;
+        border-radius: 8px;
+        padding: 3rem;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        max-width: 600px;
+        margin: 2rem auto;
+    }
+
+    .success-header {
+        text-align: center;
+        margin-bottom: 2rem;
+    }
+
+    .success-icon {
+        font-size: 4rem;
+        color: #28a745;
+        margin-bottom: 1rem;
+    }
+
+    .success-title {
+        font-size: 2rem;
+        color: var(--primary-color);
+        margin-bottom: 0.5rem;
+    }
+
+    .success-message {
+        color: #666;
+        font-size: 1.1rem;
+        line-height: 1.6;
+    }
+
+    .order-info {
+        background-color: var(--light-bg);
+        padding: 1.5rem;
+        border-radius: 8px;
+        margin: 2rem 0;
+    }
+
+    .info-row {
+        display: flex;
+        justify-content: space-between;
+        margin-bottom: 1rem;
+        padding-bottom: 1rem;
+        border-bottom: 1px solid #ddd;
+    }
+
+    .info-row:last-child {
+        border-bottom: none;
+        margin-bottom: 0;
+        padding-bottom: 0;
+    }
+
+    .info-label {
+        color: var(--primary-color);
+        font-weight: 600;
+    }
+
+    .info-value {
+        color: #333;
+    }
+
+    .order-items {
+        margin: 2rem 0;
+    }
+
+    .order-items h3 {
+        color: var(--primary-color);
+        margin-bottom: 1rem;
+    }
+
+    .item-list {
+        background-color: var(--light-bg);
+        padding: 1.5rem;
+        border-radius: 8px;
+    }
+
+    .item {
+        display: flex;
+        justify-content: space-between;
+        margin-bottom: 0.75rem;
+        padding-bottom: 0.75rem;
+        border-bottom: 1px solid #ddd;
+    }
+
+    .item:last-child {
+        border-bottom: none;
+        margin-bottom: 0;
+        padding-bottom: 0;
+    }
+
+    .item-name {
+        color: #333;
+    }
+
+    .item-price {
+        color: var(--secondary-color);
+        font-weight: bold;
+    }
+
+    .next-steps {
+        background-color: #e3f2fd;
+        border-left: 4px solid var(--accent-color);
+        padding: 1.5rem;
+        margin: 2rem 0;
+        border-radius: 4px;
+    }
+
+    .next-steps h3 {
+        color: var(--primary-color);
+        margin-bottom: 1rem;
+    }
+
+    .next-steps ol {
+        margin-left: 1.5rem;
+        line-height: 1.8;
+    }
+
+    .next-steps li {
+        color: #333;
+        margin-bottom: 0.75rem;
+    }
+
+    .action-buttons {
+        display: flex;
+        gap: 1rem;
+        margin-top: 2rem;
+    }
+
+    .btn {
+        flex: 1;
+        padding: 0.75rem;
+        border: none;
+        border-radius: 4px;
+        cursor: pointer;
+        font-size: 1rem;
+        text-align: center;
+        text-decoration: none;
+        font-weight: 600;
+        transition: all 0.3s;
+    }
+
+    .btn-primary {
+        background-color: var(--secondary-color);
+        color: white;
+    }
+
+    .btn-primary:hover {
+        background-color: #c0392b;
+        transform: translateY(-2px);
+    }
+
+    .btn-secondary {
+        background-color: transparent;
+        color: var(--primary-color);
+        border: 2px solid var(--primary-color);
+    }
+
+    .btn-secondary:hover {
+        background-color: var(--primary-color);
+        color: white;
+    }
+
+    @media (max-width: 768px) {
+        .confirmation-container {
+            padding: 1.5rem;
+            margin: 1rem;
+        }
+
+        .action-buttons {
+            flex-direction: column;
+        }
+
+        .success-title {
+            font-size: 1.5rem;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="confirmation-container">
+    <!-- Success Header -->
+    <div class="success-header">
+        <div class="success-icon">✓</div>
+        <h1 class="success-title">Order Confirmed!</h1>
+        <p class="success-message">Thank you for your purchase. Your order has been successfully placed and will be processed shortly.</p>
+    </div>
+
+    <!-- Order Information -->
+    <div class="order-info">
+        <div class="info-row">
+            <span class="info-label">Order Number:</span>
+            <span class="info-value">#{{ order.id|stringformat:"06d" }}</span>
+        </div>
+        <div class="info-row">
+            <span class="info-label">Order Date:</span>
+            <span class="info-value">{{ order.created_at|date:"M d, Y h:i A" }}</span>
+        </div>
+        <div class="info-row">
+            <span class="info-label">Status:</span>
+            <span class="info-value" style="color: #ffc107; font-weight: bold;">{{ order.get_status_display }}</span>
+        </div>
+        <div class="info-row">
+            <span class="info-label">Customer:</span>
+            <span class="info-value">{{ user.get_full_name|default:user.username }}</span>
+        </div>
+    </div>
+
+    <!-- Order Items -->
+    <div class="order-items">
+        <h3>Order Items</h3>
+        <div class="item-list">
+            {% for item in order.items.all %}
+            <div class="item">
+                <div>
+                    <div class="item-name">{{ item.product.name }}</div>
+                    <div style="color: #999; font-size: 0.9rem;">Quantity: {{ item.quantity }}</div>
+                </div>
+                <div class="item-price">${{ item.price }}</div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+
+    <!-- Order Summary -->
+    <div class="order-info">
+        <div class="info-row">
+            <span class="info-label">Subtotal:</span>
+            <span class="info-value">${{ order.total_price }}</span>
+        </div>
+        <div class="info-row">
+            <span class="info-label">Shipping:</span>
+            <span class="info-value">FREE</span>
+        </div>
+        <div class="info-row">
+            <span class="info-label">Tax:</span>
+            <span class="info-value">$0.00</span>
+        </div>
+        <div class="info-row" style="border-top: 2px solid #999; padding-top: 1rem; margin-top: 1rem;">
+            <span class="info-label" style="font-size: 1.1rem;">Total:</span>
+            <span class="info-value" style="font-size: 1.1rem; color: var(--secondary-color); font-weight: bold;">${{ order.total_price }}</span>
+        </div>
+    </div>
+
+    <!-- Next Steps -->
+    <div class="next-steps">
+        <h3>What's Next?</h3>
+        <ol>
+            <li><strong>Confirmation Email:</strong> A confirmation email will be sent to {{ user.email }} shortly.</li>
+            <li><strong>Order Processing:</strong> Your order will be processed and prepared for shipment within 1-2 business days.</li>
+            <li><strong>Shipping:</strong> You'll receive a shipping notification with tracking information once your order ships.</li>
+            <li><strong>Delivery:</strong> Your order will arrive within 5-7 business days.</li>
+        </ol>
+    </div>
+
+    <!-- Action Buttons -->
+    <div class="action-buttons">
+        <a href="{% url 'product_list' %}" class="btn btn-primary">Continue Shopping</a>
+        <a href="{% url 'orders' %}" class="btn btn-secondary">View Orders</a>
+    </div>
+</div>
+
+<!-- Email Instructions -->
+<div style="background-color: #f9f9f9; padding: 2rem; margin-top: 2rem; border-radius: 8px; text-align: center; color: #666;">
+    <p><strong>Need Help?</strong> Contact our customer service at <strong>support@shophub.com</strong> or call <strong>1-800-SHOP-HUB</strong></p>
+</div>
+{% endblock %}

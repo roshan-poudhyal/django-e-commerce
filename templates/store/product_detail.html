@@ -1,0 +1,343 @@
+{% extends 'store/base.html' %}
+
+{% block title %}{{ product.name }} - ShopHub{% endblock %}
+
+{% block extra_css %}
+<style>
+    .product-detail-container {
+        background: white;
+        border-radius: 8px;
+        overflow: hidden;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        padding: 2rem;
+    }
+
+    .product-detail {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 3rem;
+    }
+
+    .product-image-container {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background-color: var(--light-bg);
+        border-radius: 8px;
+        overflow: hidden;
+        min-height: 400px;
+    }
+
+    .product-image-container img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        max-width: 100%;
+    }
+
+    .product-details {
+        display: flex;
+        flex-direction: column;
+    }
+
+    .breadcrumb {
+        color: #666;
+        font-size: 0.9rem;
+        margin-bottom: 1rem;
+    }
+
+    .breadcrumb a {
+        color: var(--accent-color);
+        text-decoration: none;
+    }
+
+    .product-title {
+        font-size: 2.5rem;
+        color: var(--primary-color);
+        margin-bottom: 1rem;
+    }
+
+    .product-category {
+        color: #666;
+        font-size: 0.95rem;
+        margin-bottom: 1rem;
+    }
+
+    .product-rating {
+        display: flex;
+        gap: 0.5rem;
+        margin-bottom: 1rem;
+    }
+
+    .stars {
+        color: #ffc107;
+        font-size: 1.2rem;
+    }
+
+    .price-section {
+        border-bottom: 1px solid var(--border-color);
+        padding: 1.5rem 0;
+        margin-bottom: 1.5rem;
+    }
+
+    .price {
+        font-size: 2.5rem;
+        color: var(--secondary-color);
+        font-weight: bold;
+        margin-bottom: 0.5rem;
+    }
+
+    .stock-status {
+        font-size: 0.95rem;
+        margin-bottom: 1rem;
+    }
+
+    .stock-status.in-stock {
+        color: green;
+    }
+
+    .stock-status.out-stock {
+        color: red;
+    }
+
+    .description-section {
+        margin-bottom: 2rem;
+    }
+
+    .description-section h3 {
+        color: var(--primary-color);
+        margin-bottom: 1rem;
+    }
+
+    .description-section p {
+        line-height: 1.8;
+        color: #555;
+    }
+
+    .add-to-cart-section {
+        display: flex;
+        gap: 1rem;
+        margin-bottom: 2rem;
+        align-items: flex-end;
+    }
+
+    .quantity-selector {
+        display: flex;
+        align-items: center;
+        border: 1px solid var(--border-color);
+        border-radius: 4px;
+        overflow: hidden;
+    }
+
+    .quantity-selector button {
+        background: var(--light-bg);
+        border: none;
+        padding: 0.5rem 1rem;
+        cursor: pointer;
+        font-size: 1.2rem;
+        transition: all 0.3s;
+    }
+
+    .quantity-selector button:hover {
+        background: var(--border-color);
+    }
+
+    .quantity-selector input {
+        width: 60px;
+        text-align: center;
+        border: none;
+        padding: 0.5rem;
+    }
+
+    .add-to-cart-btn {
+        flex: 1;
+    }
+
+    .related-products {
+        margin-top: 3rem;
+        padding-top: 3rem;
+        border-top: 1px solid var(--border-color);
+    }
+
+    .related-products h2 {
+        color: var(--primary-color);
+        margin-bottom: 1.5rem;
+    }
+
+    .related-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+        gap: 1.5rem;
+    }
+
+    .related-card {
+        background: white;
+        border: 1px solid var(--border-color);
+        border-radius: 8px;
+        overflow: hidden;
+        transition: all 0.3s;
+    }
+
+    .related-card:hover {
+        box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+        transform: translateY(-5px);
+    }
+
+    .related-image {
+        width: 100%;
+        height: 150px;
+        background-color: var(--light-bg);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        overflow: hidden;
+    }
+
+    .related-info {
+        padding: 1rem;
+    }
+
+    .related-name {
+        font-weight: 600;
+        color: var(--primary-color);
+        margin-bottom: 0.5rem;
+    }
+
+    .related-price {
+        color: var(--secondary-color);
+        font-weight: bold;
+        margin-bottom: 1rem;
+    }
+
+    @media (max-width: 768px) {
+        .product-detail {
+            grid-template-columns: 1fr;
+        }
+
+        .product-title {
+            font-size: 1.8rem;
+        }
+
+        .price {
+            font-size: 2rem;
+        }
+
+        .add-to-cart-section {
+            flex-direction: column;
+        }
+
+        .add-to-cart-btn {
+            width: 100%;
+        }
+
+        .related-grid {
+            grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="breadcrumb">
+    <a href="{% url 'home' %}">Home</a> / <a href="{% url 'product_list' %}">Products</a> / <strong>{{ product.name }}</strong>
+</div>
+
+<div class="product-detail-container">
+    <div class="product-detail">
+        <!-- Product Image -->
+        <div class="product-image-container">
+            {% if product.image %}
+                <img src="{{ product.image.url }}" alt="{{ product.name }}">
+            {% else %}
+                <div style="text-align: center; color: #999;">No Image Available</div>
+            {% endif %}
+        </div>
+
+        <!-- Product Information -->
+        <div class="product-details">
+            <div class="product-category">{{ product.category.name }}</div>
+            <h1 class="product-title">{{ product.name }}</h1>
+
+            <div class="price-section">
+                <div class="price">${{ product.price }}</div>
+                <div class="stock-status {% if product.stock > 0 %}in-stock{% else %}out-stock{% endif %}">
+                    {% if product.stock > 0 %}
+                        <strong>In Stock</strong> ({{ product.stock }} available)
+                    {% else %}
+                        <strong>Out of Stock</strong>
+                    {% endif %}
+                </div>
+            </div>
+
+            <div class="description-section">
+                <h3>Description</h3>
+                <p>{{ product.description }}</p>
+            </div>
+
+            {% if user.is_authenticated and product.stock > 0 %}
+            <form method="post" action="{% url 'add_to_cart' product.id %}">
+                {% csrf_token %}
+                <div class="add-to-cart-section">
+                    <div class="quantity-selector">
+                        <button type="button" onclick="decreaseQuantity()">−</button>
+                        <input type="number" name="quantity" id="quantity" value="1" min="1" max="{{ product.stock }}">
+                        <button type="button" onclick="increaseQuantity()">+</button>
+                    </div>
+                    <button type="submit" class="btn btn-primary add-to-cart-btn">Add to Cart</button>
+                </div>
+            </form>
+            {% elif product.stock == 0 %}
+            <div style="background-color: #f8d7da; padding: 1rem; border-radius: 4px; color: #721c24;">
+                This product is currently out of stock.
+            </div>
+            {% else %}
+            <div style="background-color: #d4edda; padding: 1rem; border-radius: 4px; color: #155724;">
+                <a href="{% url 'login' %}" class="btn btn-primary">Login to Purchase</a>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Related Products -->
+    {% if related_products %}
+    <div class="related-products">
+        <h2>Related Products</h2>
+        <div class="related-grid">
+            {% for item in related_products %}
+            <div class="related-card">
+                <div class="related-image">
+                    {% if item.image %}
+                        <img src="{{ item.image.url }}" alt="{{ item.name }}">
+                    {% else %}
+                        <div style="width: 100%; text-align: center; color: #999;">No Image</div>
+                    {% endif %}
+                </div>
+                <div class="related-info">
+                    <div class="related-name">{{ item.name }}</div>
+                    <div class="related-price">${{ item.price }}</div>
+                    <a href="{% url 'product_detail' item.id %}" class="btn btn-secondary" style="width: 100%; text-align: center;">View</a>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+    {% endif %}
+</div>
+
+<script>
+    function decreaseQuantity() {
+        const input = document.getElementById('quantity');
+        if (input.value > 1) {
+            input.value = parseInt(input.value) - 1;
+        }
+    }
+
+    function increaseQuantity() {
+        const input = document.getElementById('quantity');
+        const max = parseInt(input.max);
+        if (parseInt(input.value) < max) {
+            input.value = parseInt(input.value) + 1;
+        }
+    }
+</script>
+{% endblock %}

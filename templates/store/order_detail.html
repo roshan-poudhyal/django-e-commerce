@@ -1,0 +1,394 @@
+{% extends 'store/base.html' %}
+
+{% block title %}Order #{{ order.id }} - ShopHub{% endblock %}
+
+{% block extra_css %}
+<style>
+    .order-detail-container {
+        display: grid;
+        grid-template-columns: 1fr 300px;
+        gap: 2rem;
+    }
+
+    .order-main {
+        background: white;
+        border-radius: 8px;
+        padding: 2rem;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    }
+
+    .order-title {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 2rem;
+        padding-bottom: 1rem;
+        border-bottom: 1px solid var(--border-color);
+    }
+
+    .order-title h1 {
+        color: var(--primary-color);
+        font-size: 2rem;
+    }
+
+    .order-status-badge {
+        padding: 0.75rem 1.5rem;
+        border-radius: 20px;
+        font-size: 0.95rem;
+        font-weight: bold;
+    }
+
+    .status-pending {
+        background-color: #fff3cd;
+        color: #856404;
+    }
+
+    .status-processing {
+        background-color: #cfe2ff;
+        color: #084298;
+    }
+
+    .status-shipped {
+        background-color: #d1ecf1;
+        color: #0c5460;
+    }
+
+    .status-delivered {
+        background-color: #d4edda;
+        color: #155724;
+    }
+
+    .order-section {
+        margin-bottom: 2rem;
+        padding-bottom: 2rem;
+        border-bottom: 1px solid var(--border-color);
+    }
+
+    .order-section:last-child {
+        border-bottom: none;
+    }
+
+    .section-title {
+        color: var(--primary-color);
+        font-size: 1.2rem;
+        font-weight: bold;
+        margin-bottom: 1rem;
+    }
+
+    .info-grid {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 1rem;
+    }
+
+    .info-item {
+        display: flex;
+        flex-direction: column;
+    }
+
+    .info-label {
+        color: #999;
+        font-size: 0.85rem;
+        font-weight: 600;
+        text-transform: uppercase;
+        margin-bottom: 0.25rem;
+    }
+
+    .info-value {
+        color: #333;
+        font-size: 1rem;
+        font-weight: 600;
+    }
+
+    .items-table {
+        width: 100%;
+        border-collapse: collapse;
+    }
+
+    .items-table thead {
+        background-color: var(--light-bg);
+    }
+
+    .items-table th {
+        padding: 1rem;
+        text-align: left;
+        font-weight: 600;
+        color: var(--primary-color);
+        border-bottom: 2px solid var(--border-color);
+    }
+
+    .items-table td {
+        padding: 1rem;
+        border-bottom: 1px solid var(--border-color);
+    }
+
+    .items-table tbody tr:hover {
+        background-color: #f9f9f9;
+    }
+
+    .item-name {
+        color: var(--primary-color);
+        font-weight: 600;
+    }
+
+    .item-price {
+        text-align: right;
+        color: var(--secondary-color);
+        font-weight: bold;
+    }
+
+    /* Sidebar */
+    .order-sidebar {
+        display: flex;
+        flex-direction: column;
+        gap: 1.5rem;
+    }
+
+    .sidebar-box {
+        background: white;
+        border-radius: 8px;
+        padding: 1.5rem;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    }
+
+    .sidebar-title {
+        color: var(--primary-color);
+        font-weight: bold;
+        margin-bottom: 1rem;
+        font-size: 1.1rem;
+    }
+
+    .summary-row {
+        display: flex;
+        justify-content: space-between;
+        margin-bottom: 0.75rem;
+        padding-bottom: 0.75rem;
+        border-bottom: 1px solid #f0f0f0;
+    }
+
+    .summary-row:last-child {
+        border-bottom: none;
+        margin-bottom: 0;
+        padding-bottom: 0;
+    }
+
+    .summary-row.total {
+        font-weight: bold;
+        border-top: 2px solid #333;
+        padding-top: 0.75rem;
+        margin-top: 1rem;
+        color: var(--primary-color);
+    }
+
+    .summary-row.total span:last-child {
+        color: var(--secondary-color);
+        font-size: 1.2rem;
+    }
+
+    .shipping-info {
+        background-color: #f0f8ff;
+        border-left: 4px solid var(--accent-color);
+        padding: 1rem;
+        border-radius: 4px;
+        margin-bottom: 1rem;
+    }
+
+    .shipping-info strong {
+        color: var(--primary-color);
+    }
+
+    .action-btn {
+        width: 100%;
+        padding: 0.75rem;
+        background-color: var(--secondary-color);
+        color: white;
+        border: none;
+        border-radius: 4px;
+        cursor: pointer;
+        font-size: 0.95rem;
+        font-weight: 600;
+        transition: all 0.3s;
+    }
+
+    .action-btn:hover {
+        background-color: #c0392b;
+        transform: translateY(-2px);
+    }
+
+    @media (max-width: 768px) {
+        .order-detail-container {
+            grid-template-columns: 1fr;
+        }
+
+        .info-grid {
+            grid-template-columns: 1fr;
+        }
+
+        .items-table {
+            font-size: 0.9rem;
+        }
+
+        .items-table th,
+        .items-table td {
+            padding: 0.75rem;
+        }
+
+        .order-sidebar {
+            gap: 1rem;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="order-detail-container">
+    <div class="order-main">
+        <!-- Order Header -->
+        <div class="order-title">
+            <h1>Order #{{ order.id|stringformat:"06d" }}</h1>
+            <div class="order-status-badge status-{{ order.status }}">
+                {{ order.get_status_display }}
+            </div>
+        </div>
+
+        <!-- Order Information -->
+        <div class="order-section">
+            <div class="section-title">Order Information</div>
+            <div class="info-grid">
+                <div class="info-item">
+                    <span class="info-label">Order Date</span>
+                    <span class="info-value">{{ order.created_at|date:"M d, Y h:i A" }}</span>
+                </div>
+                <div class="info-item">
+                    <span class="info-label">Last Updated</span>
+                    <span class="info-value">{{ order.updated_at|date:"M d, Y h:i A" }}</span>
+                </div>
+                <div class="info-item">
+                    <span class="info-label">Customer</span>
+                    <span class="info-value">{{ user.get_full_name|default:user.username }}</span>
+                </div>
+                <div class="info-item">
+                    <span class="info-label">Email</span>
+                    <span class="info-value">{{ user.email }}</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Shipping Address -->
+        <div class="order-section">
+            <div class="section-title">Shipping Address</div>
+            <div class="shipping-info">
+                <strong>{{ user.first_name }} {{ user.last_name }}</strong><br>
+                123 Main Street<br>
+                New York, NY 10001<br>
+                United States<br>
+                (555) 123-4567
+            </div>
+            <p style="color: #666; font-size: 0.9rem;">
+                <strong>Estimated Delivery:</strong> 5-7 business days from order date
+            </p>
+        </div>
+
+        <!-- Order Items -->
+        <div class="order-section">
+            <div class="section-title">Order Items</div>
+            <table class="items-table">
+                <thead>
+                    <tr>
+                        <th>Product</th>
+                        <th>Quantity</th>
+                        <th>Unit Price</th>
+                        <th>Total</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for item in order.items.all %}
+                    <tr>
+                        <td class="item-name">{{ item.product.name }}</td>
+                        <td>{{ item.quantity }}</td>
+                        <td>${{ item.price }}</td>
+                        <td class="item-price">${{ item.price|add:0|mul:item.quantity }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Timeline -->
+        <div class="order-section">
+            <div class="section-title">Order Timeline</div>
+            <div style="display: flex; flex-direction: column; gap: 1rem;">
+                <div style="display: flex; gap: 1rem;">
+                    <div style="width: 20px; height: 20px; background-color: #28a745; border-radius: 50%; flex-shrink: 0; margin-top: 0.25rem;"></div>
+                    <div>
+                        <strong style="color: var(--primary-color);">Order Placed</strong><br>
+                        <span style="color: #999; font-size: 0.9rem;">{{ order.created_at|date:"M d, Y" }}</span>
+                    </div>
+                </div>
+                <div style="display: flex; gap: 1rem;">
+                    <div style="width: 20px; height: 20px; background-color: {% if order.status != 'pending' %}#28a745{% else %}#ddd{% endif %}; border-radius: 50%; flex-shrink: 0; margin-top: 0.25rem;"></div>
+                    <div>
+                        <strong style="color: var(--primary-color);">Order Processing</strong><br>
+                        <span style="color: #999; font-size: 0.9rem;">1-2 business days</span>
+                    </div>
+                </div>
+                <div style="display: flex; gap: 1rem;">
+                    <div style="width: 20px; height: 20px; background-color: {% if order.status == 'shipped' or order.status == 'delivered' %}#28a745{% else %}#ddd{% endif %}; border-radius: 50%; flex-shrink: 0; margin-top: 0.25rem;"></div>
+                    <div>
+                        <strong style="color: var(--primary-color);">Order Shipped</strong><br>
+                        <span style="color: #999; font-size: 0.9rem;">Tracking number coming soon</span>
+                    </div>
+                </div>
+                <div style="display: flex; gap: 1rem;">
+                    <div style="width: 20px; height: 20px; background-color: {% if order.status == 'delivered' %}#28a745{% else %}#ddd{% endif %}; border-radius: 50%; flex-shrink: 0; margin-top: 0.25rem;"></div>
+                    <div>
+                        <strong style="color: var(--primary-color);">Delivered</strong><br>
+                        <span style="color: #999; font-size: 0.9rem;">5-7 business days</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Sidebar -->
+    <div class="order-sidebar">
+        <!-- Order Summary -->
+        <div class="sidebar-box">
+            <div class="sidebar-title">Order Summary</div>
+            <div class="summary-row">
+                <span>Subtotal:</span>
+                <span>${{ order.total_price }}</span>
+            </div>
+            <div class="summary-row">
+                <span>Shipping:</span>
+                <span>FREE</span>
+            </div>
+            <div class="summary-row">
+                <span>Tax:</span>
+                <span>$0.00</span>
+            </div>
+            <div class="summary-row total">
+                <span>Total:</span>
+                <span>${{ order.total_price }}</span>
+            </div>
+        </div>
+
+        <!-- Quick Actions -->
+        <div class="sidebar-box">
+            <div class="sidebar-title">Actions</div>
+            <button class="action-btn" onclick="window.print()">Print Invoice</button>
+            <a href="{% url 'product_list' %}" class="action-btn" style="display: block; text-align: center; text-decoration: none; background-color: var(--accent-color); margin-top: 0.5rem;">Continue Shopping</a>
+        </div>
+
+        <!-- Need Help -->
+        <div class="sidebar-box" style="background-color: #f0f8ff; border-left: 4px solid var(--accent-color);">
+            <div class="sidebar-title">Need Help?</div>
+            <p style="color: #666; font-size: 0.9rem; margin-bottom: 1rem;">
+                Questions about your order? Contact our customer service team.
+            </p>
+            <div style="color: var(--primary-color); font-weight: 600; margin-bottom: 0.5rem;">support@shophub.com</div>
+            <div style="color: var(--primary-color); font-weight: 600;">1-800-SHOP-HUB</div>
+        </div>
+    </div>
+</div>
+{% endblock %}

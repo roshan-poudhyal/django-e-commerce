@@ -1,0 +1,254 @@
+{% extends 'store/base.html' %}
+
+{% block title %}Products - ShopHub{% endblock %}
+
+{% block extra_css %}
+<style>
+    .products-container {
+        display: grid;
+        grid-template-columns: 250px 1fr;
+        gap: 2rem;
+    }
+
+    .sidebar {
+        background: white;
+        padding: 1.5rem;
+        border-radius: 8px;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        height: fit-content;
+    }
+
+    .sidebar h3 {
+        color: var(--primary-color);
+        margin-bottom: 1rem;
+        font-size: 1.1rem;
+    }
+
+    .filter-group {
+        margin-bottom: 1.5rem;
+    }
+
+    .filter-group label {
+        display: flex;
+        align-items: center;
+        margin-bottom: 0.5rem;
+        font-weight: normal;
+        cursor: pointer;
+    }
+
+    .filter-group input[type="checkbox"],
+    .filter-group input[type="radio"] {
+        margin-right: 0.5rem;
+    }
+
+    .search-box {
+        display: flex;
+        gap: 0.5rem;
+        margin-bottom: 1.5rem;
+    }
+
+    .search-box input {
+        flex: 1;
+    }
+
+    .search-box button {
+        padding: 0.75rem 1rem;
+    }
+
+    .sort-select {
+        width: 100%;
+        margin-bottom: 1.5rem;
+    }
+
+    .main-content {
+        display: flex;
+        flex-direction: column;
+    }
+
+    .product-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+        gap: 1.5rem;
+    }
+
+    .product-card {
+        background: white;
+        border-radius: 8px;
+        overflow: hidden;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        transition: all 0.3s;
+    }
+
+    .product-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+    }
+
+    .product-image {
+        width: 100%;
+        height: 150px;
+        background-color: var(--light-bg);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        overflow: hidden;
+    }
+
+    .product-image img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+    }
+
+    .product-info {
+        padding: 1rem;
+    }
+
+    .product-name {
+        font-size: 1rem;
+        font-weight: 600;
+        color: var(--primary-color);
+        margin-bottom: 0.5rem;
+    }
+
+    .product-price {
+        font-size: 1.3rem;
+        color: var(--secondary-color);
+        font-weight: bold;
+        margin-bottom: 0.5rem;
+    }
+
+    .product-actions {
+        display: flex;
+        gap: 0.5rem;
+        margin-top: 0.75rem;
+    }
+
+    .product-actions a {
+        flex: 1;
+        text-align: center;
+        font-size: 0.9rem;
+    }
+
+    .no-products {
+        text-align: center;
+        padding: 3rem;
+        color: #666;
+    }
+
+    .no-products h3 {
+        color: var(--primary-color);
+        margin-bottom: 1rem;
+    }
+
+    .page-title {
+        margin-bottom: 2rem;
+    }
+
+    @media (max-width: 768px) {
+        .products-container {
+            grid-template-columns: 1fr;
+        }
+
+        .sidebar {
+            display: none;
+        }
+
+        .product-grid {
+            grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<h1 class="page-title">Products</h1>
+
+<div class="products-container">
+    <!-- Sidebar Filters -->
+    <div class="sidebar">
+        <form method="get" id="filter-form">
+            <!-- Search -->
+            <div class="filter-group">
+                <input type="text" name="search" value="{{ search_query }}" placeholder="Search products..." class="search-box">
+            </div>
+
+            <!-- Category Filter -->
+            <div class="filter-group">
+                <h3>Category</h3>
+                <label>
+                    <input type="radio" name="category" value="">
+                    All Categories
+                </label>
+                {% for category in categories %}
+                <label>
+                    <input type="radio" name="category" value="{{ category.id }}" {% if selected_category|stringformat:"s" == category.id|stringformat:"s" %}checked{% endif %}>
+                    {{ category.name }}
+                </label>
+                {% endfor %}
+            </div>
+
+            <!-- Sort -->
+            <div class="filter-group">
+                <label>Sort By:</label>
+                <select name="sort" class="sort-select">
+                    <option value="-created_at">Newest</option>
+                    <option value="price">Price: Low to High</option>
+                    <option value="-price">Price: High to Low</option>
+                    <option value="name">Name: A to Z</option>
+                </select>
+            </div>
+
+            <button type="submit" class="btn btn-primary" style="width: 100%;">Apply Filters</button>
+        </form>
+    </div>
+
+    <!-- Products -->
+    <div class="main-content">
+        {% if products %}
+        <div class="product-grid">
+            {% for product in products %}
+            <div class="product-card">
+                <div class="product-image">
+                    {% if product.image %}
+                        <img src="{{ product.image.url }}" alt="{{ product.name }}">
+                    {% else %}
+                        <div style="width: 100%; text-align: center; color: #999;">No Image</div>
+                    {% endif %}
+                </div>
+                <div class="product-info">
+                    <div class="product-name">{{ product.name }}</div>
+                    <div class="product-price">${{ product.price }}</div>
+                    <div style="font-size: 0.85rem; color: #666; margin-bottom: 0.75rem;">
+                        {% if product.stock > 0 %}
+                            <span style="color: green;">In Stock ({{ product.stock }})</span>
+                        {% else %}
+                            <span style="color: red;">Out of Stock</span>
+                        {% endif %}
+                    </div>
+                    <div class="product-actions">
+                        <a href="{% url 'product_detail' product.id %}" class="btn btn-secondary">View</a>
+                        {% if user.is_authenticated and product.stock > 0 %}
+                            <form method="post" action="{% url 'add_to_cart' product.id %}" style="flex: 1;">
+                                {% csrf_token %}
+                                <input type="hidden" name="quantity" value="1">
+                                <button type="submit" class="btn btn-primary" style="width: 100%;">Add</button>
+                            </form>
+                        {% elif not user.is_authenticated %}
+                            <a href="{% url 'login' %}" class="btn btn-primary" style="flex: 1; text-align: center;">Add</a>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        {% else %}
+        <div class="no-products">
+            <h3>No Products Found</h3>
+            <p>Try adjusting your filters or search terms.</p>
+            <a href="{% url 'product_list' %}" class="btn btn-primary" style="margin-top: 1rem;">View All Products</a>
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}
